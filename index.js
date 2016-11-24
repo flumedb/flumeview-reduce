@@ -9,7 +9,10 @@ function isEmpty (o) {
   return true
 }
 
-module.exports = function (reduce) {
+function id (e) { return e }
+
+module.exports = function (reduce, map) {
+  map = map || id
   return function (log, name) { //name is where this view is mounted
     var acc, since = Obv(), ts = 0
     var value = Obv(), _value, writing = false, state, int
@@ -65,7 +68,9 @@ module.exports = function (reduce) {
       },
       createSink: function (cb) {
         return Drain(function (data) {
-          value.set(reduce(value.value, data.value, data.seq))
+          var _data = map(data.value, data.seq)
+          if(_data)
+            value.set(reduce(value.value, _data, data.seq))
           since.set(data.seq)
           write()
         }, cb)
@@ -84,21 +89,4 @@ module.exports = function (reduce) {
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
