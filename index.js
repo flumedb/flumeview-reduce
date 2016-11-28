@@ -1,8 +1,10 @@
 var Obv = require('obv')
 var Drain = require('pull-stream/sinks/drain')
+var Once = require('pull-stream/source/once')
 var AtomicFile = require('atomic-file')
 var path = require('path')
 var deepEqual = require('deep-equal')
+var Notify = require('pull-notify')
 
 function isEmpty (o) {
   for(var k in o) return false
@@ -13,6 +15,7 @@ function id (e) { return e }
 
 module.exports = function (reduce, map) {
   map = map || id
+  var notify = Notify()
   return function (log, name) { //name is where this view is mounted
     var acc, since = Obv(), ts = 0
     var value = Obv(), _value, writing = false, state, int
@@ -60,19 +63,29 @@ module.exports = function (reduce, map) {
     return {
       since: since,
       value: value,
-      methods: {get: 'async'},
+      methods: {get: 'async', stream: 'source'},
       get: function (path, cb) {
         if('function' === typeof path)
           cb = path, path = null
         cb(null, value.value)
       },
+      stream: function (opts) {
+        opts = opts || {}
+        //todo: send the HASH of the value, and only resend it if it is different!
+        if(opts.live !== true)
+          return Once(value.value)
+        var source = notify.listen()
+        //start by sending the current value...
+        source.push(value.value)
+        return source
+      },
       createSink: function (cb) {
         return Drain(function (data) {
-          var _data = map(data.value, data.seq)
-          if(_data)
-            value.set(reduce(value.value, _data, data.seq))
-          since.set(data.seq)
-          write()
+            var _data = map(data.value, data.seq)
+            if(_data != null) value.set(reduce(value.value, _data, data.seq))
+            since.set(data.seq)
+            notify(_data)
+            write()
         }, cb)
       },
       destroy: function (cb) {
