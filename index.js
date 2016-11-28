@@ -1,6 +1,6 @@
 var Obv = require('obv')
 var Drain = require('pull-stream/sinks/drain')
-var Once = require('pull-stream/source/once')
+var Once = require('pull-stream/sources/once')
 var AtomicFile = require('atomic-file')
 var path = require('path')
 var deepEqual = require('deep-equal')
