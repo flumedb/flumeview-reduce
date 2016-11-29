@@ -11,9 +11,16 @@ function isEmpty (o) {
   return true
 }
 
+function isFunction (f) {
+  return 'function' === typeof f
+}
+
 function id (e) { return e }
 
-module.exports = function (reduce, map) {
+module.exports = function (version, reduce, map) {
+  if(isFunction(version))
+    throw new Error('version must be a number')
+
   map = map || id
   var notify = Notify()
   return function (log, name) { //name is where this view is mounted
@@ -51,6 +58,9 @@ module.exports = function (reduce, map) {
       state = AtomicFile(path.join(dir, name+'.json'))
       state.get(function (err, data) {
         if(err || isEmpty(data)) since.set(-1)
+        else if(data.version !== version) {
+          since.set(-1) //overwrite old data.
+        }
         else {
           value.set(_value = data.value)
           since.set(data.seq)
@@ -102,4 +112,5 @@ module.exports = function (reduce, map) {
     }
   }
 }
+
 
