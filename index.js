@@ -40,7 +40,7 @@ module.exports = function (version, reduce, map) {
         clearTimeout(int)
         int = setTimeout(function () {
           ts = _ts; writing = true
-          state.set({seq: since.value, value: _value = value.value}, function () {
+          state.set({seq: since.value, version: version, value: _value = value.value}, function () {
             writing = false
           })
         }, 200)
@@ -107,7 +107,7 @@ module.exports = function (version, reduce, map) {
         clearTimeout(int)
         if(!since.value) return cb()
         //force a write.
-        state.set({seq: since.value, value: _value = value.value}, cb)
+        state.set({seq: since.value, version: version, value: _value = value.value}, cb)
       }
     }
   }
