@@ -17,7 +17,7 @@ function isFunction (f) {
 
 function id (e) { return e }
 
-module.exports = function (version, reduce, map) {
+module.exports = function (version, reduce, map, codec) {
   if(isFunction(version))
     throw new Error('version must be a number')
 
@@ -34,17 +34,34 @@ module.exports = function (version, reduce, map) {
     // save whenever the view gets in sync with the log,
     // as long as it hasn't beet updated in 1 minute.
 
+    var wState = {
+      ts: 0,
+      writing: false,
+      since: -1
+    }
+
     function write () {
-      var _ts = Date.now()
-      if(state && since.value === log.since.value && _ts > ts + 60*1000 && !writing) {
-        clearTimeout(int)
-        int = setTimeout(function () {
-          ts = _ts; writing = true
-          state.set({seq: since.value, version: version, value: _value = value.value}, function () {
-            writing = false
-          })
-        }, 200)
-      }
+      var ts = Date.now()
+      if(wState.writing) return
+      if(!state || since.value != log.since.value) return
+      if(wState.ts + 60e3 > ts) return
+      if(wState.since === since) return
+
+      //don't actually start writing immediately.
+      //incase writes are coming in fast...
+      //this will delay until they stop for 200 ms
+      clearTimeout(int)
+      int = setTimeout(function () {
+        wState.ts = ts; wState.writing = true
+        wState.since = since.value
+        state.set({seq: since.value, version: version, value: _value = value.value}, function () {
+          wState.writing = false
+          //if the state has changed while writing,
+          //consider another write.
+          if(wState.since != since.value) write()
+        })
+      }, 200)
+
     }
 
     //depending on the function, the reduction may not change on every update.
@@ -55,7 +72,7 @@ module.exports = function (version, reduce, map) {
 
     if(log.filename) {
       var dir = path.dirname(log.filename)
-      state = AtomicFile(path.join(dir, name+'.json'))
+      state = AtomicFile(path.join(dir, name+'.json'), codec)
       state.get(function (err, data) {
         if(err || isEmpty(data)) since.set(-1)
         else if(data.version !== version) {
@@ -105,12 +122,12 @@ module.exports = function (version, reduce, map) {
       },
       close: function (cb) {
         clearTimeout(int)
-        if(!since.value) return cb()
+        if(!since.value || !state) return cb()
+        //if we are already in sync, close immediately.
+        if(wState.since == since.value) return cb()
         //force a write.
         state.set({seq: since.value, version: version, value: _value = value.value}, cb)
       }
     }
   }
 }
-
-
