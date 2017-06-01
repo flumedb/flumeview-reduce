@@ -7,6 +7,7 @@ var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
 
 function isEmpty (o) {
+  if(o == null) return
   for(var k in o) return false
   return true
 }
@@ -90,7 +91,7 @@ module.exports = function (version, reduce, map, codec) {
     return {
       since: since,
       value: value,
-      methods: {get: 'async', stream: 'source'},
+      methods: {get: 'async', stream: 'source', value: 'sync'},
       get: function (path, cb) {
         if('function' === typeof path)
           cb = path, path = null
