@@ -2,10 +2,10 @@
   "name": "flumeview-reduce",
   "description": "",
   "version": "1.1.0",
-  "homepage": "https://github.com/dominictarr/flumeview-reduce",
+  "homepage": "https://github.com/flumedb/flumeview-reduce",
   "repository": {
     "type": "git",
-    "url": "git://github.com/dominictarr/flumeview-reduce.git"
+    "url": "git://github.com/flumedb/flumeview-reduce.git"
   },
   "dependencies": {
     "atomic-file": "^0.3.0",
