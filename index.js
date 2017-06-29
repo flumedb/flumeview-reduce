@@ -6,10 +6,22 @@ var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
 
+/*
+Replication Ideas.
+
+//value is skipped if seq is the same. or value option is false, or max > 
+getState({seq, value}, cb(null, {seq: _seq, value: value}))
+
+*/
+
 function isEmpty (o) {
   if(o == null) return
   for(var k in o) return false
   return true
+}
+
+function isObject (o) {
+  return o && 'object' === typeof o
 }
 
 function isFunction (f) {
@@ -18,7 +30,7 @@ function isFunction (f) {
 
 function id (e) { return e }
 
-module.exports = function (version, reduce, map, codec) {
+module.exports = function (version, reduce, map, codec, initial) {
   if(isFunction(version))
     throw new Error('version must be a number')
 
@@ -75,9 +87,9 @@ module.exports = function (version, reduce, map, codec) {
       var dir = path.dirname(log.filename)
       state = AtomicFile(path.join(dir, name+'.json'), codec)
       state.get(function (err, data) {
-        if(err || isEmpty(data)) since.set(-1)
-        else if(data.version !== version) {
+        if(err || isEmpty(data) || data.version !== version) {
           since.set(-1) //overwrite old data.
+          value.set(initial)
         }
         else {
           value.set(_value = data.value)
@@ -85,17 +97,29 @@ module.exports = function (version, reduce, map, codec) {
         }
       })
     }
-    else
+    else {
       since.set(-1)
+      value.set(initial)
+    }
 
     return {
       since: since,
       value: value,
       methods: {get: 'async', stream: 'source', value: 'sync'},
-      get: function (path, cb) {
-        if('function' === typeof path)
-          cb = path, path = null
-        cb(null, value.value)
+      get: function (opts, cb) {
+        if('function' === typeof opts) {
+          cb = opts, opts = null
+        }
+        if(!opts || isEmpty(opts))
+          cb(null, value.value)
+        else if(isObject(opts)) {
+          since.once(function (v) {
+            //should never happen
+            if(v < opts.seq) return cb(new Error('requested future sequence'))
+            else if(opts.values === false) cb(null, {seq: v})
+            else cb(null, opts.seq === v ? {seq: v} : {seq: v, value: value.value })
+          })
+        }
       },
       stream: function (opts) {
         opts = opts || {}
@@ -132,3 +156,4 @@ module.exports = function (version, reduce, map, codec) {
     }
   }
 }
+
