@@ -14,7 +14,11 @@
     "pull-notify": "^0.1.1",
     "pull-stream": "^3.5.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "flumedb": "^0.2.3",
+    "flumelog-memory": "^0.1.2",
+    "tape": "^4.6.3"
+  },
   "scripts": {
     "test": "set -e; for t in test/*.js; do node $t; done"
   },
