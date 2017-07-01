@@ -25,6 +25,3 @@ else module.exports = function (key) {
   }
 }
 
-
-
-

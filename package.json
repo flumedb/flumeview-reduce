@@ -10,6 +10,7 @@
   "dependencies": {
     "atomic-file": "^0.3.0",
     "deep-equal": "^1.0.1",
+    "flumecodec": "0.0.0",
     "obv": "0.0.0",
     "pull-notify": "^0.1.1",
     "pull-stream": "^3.5.0"
@@ -17,6 +18,7 @@
   "devDependencies": {
     "flumedb": "^0.2.3",
     "flumelog-memory": "^0.1.2",
+    "flumelog-offset": "^3.0.3",
     "tape": "^4.6.3"
   },
   "scripts": {

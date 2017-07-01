@@ -1,7 +1,6 @@
 var Obv = require('obv')
 var Drain = require('pull-stream/sinks/drain')
 var Once = require('pull-stream/sources/once')
-var AtomicFile = require('atomic-file')
 var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
@@ -30,7 +29,8 @@ function isFunction (f) {
 
 function id (e) { return e }
 
-module.exports = function (version, reduce, map, codec, initial) {
+module.exports = function (Store) {
+return function (version, reduce, map, codec, initial) {
   if(isFunction(version))
     throw new Error('version must be a number')
 
@@ -85,7 +85,7 @@ module.exports = function (version, reduce, map, codec, initial) {
 
     if(log.filename) {
       var dir = path.dirname(log.filename)
-      state = AtomicFile(path.join(dir, name+'.json'), codec)
+      state = Store(dir, name, codec)
       state.get(function (err, data) {
         if(err || isEmpty(data) || data.version !== version) {
           since.set(-1) //overwrite old data.
@@ -114,10 +114,19 @@ module.exports = function (version, reduce, map, codec, initial) {
           cb(null, value.value)
         else if(isObject(opts)) {
           since.once(function (v) {
+            //ways to call:
+            //check seq => seq, version, size
+            //get seq,value => seq, version, value
             //should never happen
-            if(v < opts.seq) return cb(new Error('requested future sequence'))
-            else if(opts.values === false) cb(null, {seq: v})
-            else cb(null, opts.seq === v ? {seq: v} : {seq: v, value: value.value })
+            cb(null,
+              opts.values === false ? {seq: v, version: version, size: state && state.size || null}
+            : opts.meta === false ? value.value
+            : {seq: v, version: version, value: value.value}
+            )
+//            if(opts.values === false) cb(null, {seq: v, version: version, size: state.size})
+//            else if(opts.meta === false) cb(null, value.value)
+//            else cb(null, {seq: v, version: version, size: state.size})
+////            else cb(null, opts.seq === v ? {seq: v} : {seq: v, version: version, value: value.value })
           })
         }
       },
@@ -155,5 +164,10 @@ module.exports = function (version, reduce, map, codec, initial) {
       }
     }
   }
-}
+}}
+
+
+
+
+
 
