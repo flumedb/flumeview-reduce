@@ -20,25 +20,20 @@ tape('simple', function (t) {
       db.view.get(function (err, value) {
         if(err) throw err
         t.equal(value, 30)
-        db.view.get({seq: -1}, function (err, value) {
+        db.view.get({meta: true, values: true}, function (err, value) {
           if(err) throw err
           console.log(value)
-          t.deepEqual(value, {seq: 1, value: 30})
-          db.view.get({seq: 1, value: false}, function (err, value) {
+          t.deepEqual(value, {seq: 1, value: 30, version: 1})
+          db.view.get({values: false}, function (err, value) {
             if(err) throw err
             console.log(value)
-            t.deepEqual(value, {seq: 1})
-            db.view.get({seq: 2}, function (err) {
-              t.ok(err, 'expected error, for sequence in the future')
-              t.end()
-            })
+            t.deepEqual(value, {seq: 1, version: 1, size: null})
+            t.end()
           })
         })
       })
     })
-    
   })
-
 })
 
 
