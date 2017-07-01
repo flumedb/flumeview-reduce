@@ -70,4 +70,4 @@ tape('remote 2', function (t) {
   })
 })
 
-
+//remote, but check that it streams if the load amount is too big
