@@ -13,7 +13,6 @@ module.exports = function (get, LocalStore, estimate) {
     var local = LocalStore(dir, name, codec)
     return {
       get: function (cb) {
-        var localSince, remoteSince
         local.get(function (_, data) {
           if(!data)
             return update()
