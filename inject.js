@@ -117,16 +117,11 @@ return function (version, reduce, map, codec, initial) {
             //ways to call:
             //check seq => seq, version, size
             //get seq,value => seq, version, value
-            //should never happen
             cb(null,
               opts.values === false ? {seq: v, version: version, size: state && state.size || null}
             : opts.meta === false ? value.value
             : {seq: v, version: version, value: value.value}
             )
-//            if(opts.values === false) cb(null, {seq: v, version: version, size: state.size})
-//            else if(opts.meta === false) cb(null, value.value)
-//            else cb(null, {seq: v, version: version, size: state.size})
-////            else cb(null, opts.seq === v ? {seq: v} : {seq: v, version: version, value: value.value })
           })
         }
       },
@@ -165,9 +160,6 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
-
-
 
 
 
