@@ -19,7 +19,7 @@ module.exports = function (dir, name, codec) {
         try {
           self.size = value.length
           value = codec.decode(value)
-          value.size = size
+          value.size = self.size
         } catch(err) {
           return cb(err)
         }
@@ -33,6 +33,7 @@ module.exports = function (dir, name, codec) {
     }
   }
 }
+
 
 
 
