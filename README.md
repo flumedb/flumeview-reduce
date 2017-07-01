@@ -64,7 +64,41 @@ Stream the changing reduce state. for this to work, a map function must be provi
 
 If so, the same reduce function can be used to process the output.
 
+## Stores
+
+`flumeview-reduce` currently includes several _store_ implementations,
+this is how the actual data is persisted. the current implementations are
+
+* 'flumeview-reduce/store/fs' - store in a file.
+* 'flumeview-reduce/store/local-storage' - `localStorage`, in a browser
+* 'flumeview-reduce/store/remote' - a meta store that keeps a local copy of a remote view.
+
+to set a store, you must set up flumeview-reduce via the lower level dependency injection api.
+
+``` js
+var createReduce = require('flumeview-reduce/inject')
+
+var Reduce = createReduce(Store)
+
+//then use Reduce normally
+
+var view = db.use('view', Reduce(version, reduce, map)) //etc
+
+//since remote is most interesting
+
+var Remote = require('flumeview-reduce/store/remote')
+function get (opts, cb) {
+  //call the get method on the remote copy of the flumeview
+  view.get(opts, cb)
+}
+var RemoteReduce = createReduce(Remote(get, Store, codec))
+
+var remoteView = _db.use('view', Reduce(version, reduce, map)) //etc
+//make sure you pass the exact same reduce and map functions to the remote view!
+```
+
 ## License
 
 MIT
+
 
