@@ -60,14 +60,12 @@ return function (version, reduce, map, codec, initial) {
     // don't write if the view is not in sync with log
     // don't write if we already wrote in the last minute.
     // (note: this isn't stored, so doesn't effect the first write after process starts)
-    // and don't write if the view is already in sync
     function write () {
       if(!state) return //purely in memory.
 
       var ts = Date.now()
       if(wState.writing) return
       if(wState.ts + 60e3 > ts) return
-      if(wState.since === since.value) return
 
       //don't actually start writing immediately.
       //incase writes are coming in fast...
@@ -150,7 +148,7 @@ return function (version, reduce, map, codec, initial) {
             since.set(data.seq)
             notify(_data)
             //if we are now in sync with the log, maybe write.
-            if(since.value == log.since.value)
+            if(since.value === log.since.value)
               write()
         }, cb)
       },
@@ -170,16 +168,6 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
-
-
-
-
-
-
-
-
-
 
 
 
