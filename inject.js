@@ -47,16 +47,26 @@ return function (version, reduce, map, codec, initial) {
     // save whenever the view gets in sync with the log,
     // as long as it hasn't beet updated in 1 minute.
 
+
+    //write state. 
     var wState = {
-      ts: 0,
-      writing: false,
-      since: -1
+      ts: 0, //last time written
+      writing: false, //whether currently writing
+      since: -1 //what sequence is persisted.
     }
 
+    // Test if now is a good time to write.
+    // don't write if we are already writing
+    // don't write if the view is not in sync with log
+    // don't write if we already wrote in the last minute.
+    // (note: this isn't stored, so doesn't effect the first write after process starts)
+    // and don't write if the view is already in sync
     function write () {
+      if(!state) return //purely in memory.
+
       var ts = Date.now()
       if(wState.writing) return
-      if(!state || since.value != log.since.value) return
+      if(since.value != log.since.value) return
       if(wState.ts + 60e3 > ts) return
       if(wState.since === since) return
 
@@ -74,7 +84,6 @@ return function (version, reduce, map, codec, initial) {
           if(wState.since != since.value) write()
         })
       }, 200)
-
     }
 
     //depending on the function, the reduction may not change on every update.
@@ -160,6 +169,15 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
+
+
+
+
+
+
+
+
+
 
 
 
