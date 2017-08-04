@@ -5,6 +5,7 @@ var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
 
+var Write = require('./write')
 /*
 Replication Ideas.
 
@@ -37,8 +38,8 @@ return function (version, reduce, map, codec, initial) {
   map = map || id
   var notify = Notify()
   return function (log, name) { //name is where this view is mounted
-    var acc, since = Obv(), ts = 0
-    var value = Obv(), _value, writing = false, state, int
+    var acc, since = Obv()
+    var value = Obv(), state
 
     //if we are in sync, and have not written recently, then write the current state.
 
@@ -48,40 +49,7 @@ return function (version, reduce, map, codec, initial) {
     // as long as it hasn't beet updated in 1 minute.
 
 
-    //write state. 
-    var wState = {
-      ts: 0, //last time written
-      writing: false, //whether currently writing
-      since: -1 //what sequence is persisted.
-    }
-
-    // Test if now is a good time to write.
-    // don't write if we are already writing
-    // don't write if the view is not in sync with log
-    // don't write if we already wrote in the last minute.
-    // (note: this isn't stored, so doesn't effect the first write after process starts)
-    function write () {
-      if(!state) return //purely in memory.
-
-      var ts = Date.now()
-      if(wState.writing) return
-      if(wState.ts + 60e3 > ts) return
-
-      //don't actually start writing immediately.
-      //incase writes are coming in fast...
-      //this will delay until they stop for 200 ms
-      clearTimeout(int)
-      int = setTimeout(function () {
-        wState.ts = ts; wState.writing = true
-        wState.since = since.value
-        state.set({seq: since.value, version: version, value: _value = value.value}, function () {
-          wState.writing = false
-          //if the state has changed while writing,
-          //consider another write.
-          if(wState.since != since.value) write()
-        })
-      }, 200)
-    }
+    var write
 
     //depending on the function, the reduction may not change on every update.
     //but currently, we still need to rewrite the file to reflect that.
@@ -92,18 +60,20 @@ return function (version, reduce, map, codec, initial) {
     if(log.filename) {
       var dir = path.dirname(log.filename)
       state = Store(dir, name, codec)
+      write = Write(state)
       state.get(function (err, data) {
         if(err || isEmpty(data) || data.version !== version) {
           since.set(-1) //overwrite old data.
           value.set(initial)
         }
         else {
-          value.set(_value = data.value)
+          value.set(data.value)
           since.set(data.seq)
         }
       })
     }
     else {
+      write = function (){}
       since.set(-1)
       value.set(initial)
     }
@@ -161,13 +131,15 @@ return function (version, reduce, map, codec, initial) {
         clearTimeout(int)
         if(!since.value || !state) return cb()
         //if we are already in sync, close immediately.
-        if(wState.since == since.value) return cb()
+//        if(!write.dirty) return cb()
         //force a write.
-        state.set({seq: since.value, version: version, value: _value = value.value}, cb)
+        write.close ? write.close(cb) : cb()
+  //      state.set({seq: since.value, version: version, value: _value = value.value}, cb)
       }
     }
   }
 }}
+
 
 
 
