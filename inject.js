@@ -128,7 +128,6 @@ return function (version, reduce, map, codec, initial) {
         else cb()
       },
       close: function (cb) {
-        clearTimeout(int)
         if(!since.value || !state) return cb()
         //if we are already in sync, close immediately.
 //        if(!write.dirty) return cb()
@@ -139,7 +138,4 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
-
-
 

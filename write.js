@@ -63,7 +63,6 @@ module.exports = function (state, version) {
     // don't write if the view is not in sync with log
     // don't write if we already wrote in the last minute.
     // (note: this isn't stored, so doesn't effect the first write after process starts)
-
     function _timeout () {
       wState = timeout(wState, Date.now())
       if(wState.write) {
@@ -115,6 +114,7 @@ module.exports = function (state, version) {
 
   write.close = function (cb) {
     if(!wState.dirty) return cb()
+    clearTimeout(int)
     wState.cb = cb
     write()
   }
@@ -122,27 +122,9 @@ module.exports = function (state, version) {
   return write
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+module.exports.init = init
+module.exports.maybeWrite = maybeWrite
+module.exports.timeout = timeout
+module.exports.written = written
+module.exports.close = close
 
