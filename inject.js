@@ -66,9 +66,8 @@ return function (version, reduce, map, codec, initial) {
 
       var ts = Date.now()
       if(wState.writing) return
-      if(since.value != log.since.value) return
       if(wState.ts + 60e3 > ts) return
-      if(wState.since === since) return
+      if(wState.since === since.value) return
 
       //don't actually start writing immediately.
       //incase writes are coming in fast...
@@ -150,7 +149,9 @@ return function (version, reduce, map, codec, initial) {
             if(_data != null) value.set(reduce(value.value, _data, data.seq))
             since.set(data.seq)
             notify(_data)
-            write()
+            //if we are now in sync with the log, maybe write.
+            if(since.value == log.since.value)
+              write()
         }, cb)
       },
       destroy: function (cb) {
@@ -169,6 +170,7 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
+
 
 
 
