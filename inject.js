@@ -4,8 +4,8 @@ var Once = require('pull-stream/sources/once')
 var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
+var AsyncSingle = require('async-single')
 
-var Write = require('./write')
 /*
 Replication Ideas.
 
@@ -49,7 +49,18 @@ return function (version, reduce, map, codec, initial) {
     // as long as it hasn't beet updated in 1 minute.
 
 
-    var write
+    var w = AsyncSingle(function (value, cb) {
+      if(state) state.set(value, cb)
+      else cb()
+    })
+
+    function write () {
+      w.write({
+        seq: since.value,
+        version: version,
+        value: value.value
+      })
+    }
 
     //depending on the function, the reduction may not change on every update.
     //but currently, we still need to rewrite the file to reflect that.
@@ -60,7 +71,6 @@ return function (version, reduce, map, codec, initial) {
     if(log.filename) {
       var dir = path.dirname(log.filename)
       state = Store(dir, name, codec)
-      write = Write(state)
       state.get(function (err, data) {
         if(err || isEmpty(data) || data.version !== version) {
           since.set(-1) //overwrite old data.
@@ -124,18 +134,16 @@ return function (version, reduce, map, codec, initial) {
       },
       destroy: function (cb) {
         value.set(null); since.set(-1);
-        if(state) state.set(null, cb)
-        else cb()
+        w.write(null)
+        w.close(cb)
       },
       close: function (cb) {
         if(!since.value || !state) return cb()
-        //if we are already in sync, close immediately.
-//        if(!write.dirty) return cb()
-        //force a write.
-        write.close ? write.close(cb) : cb()
-  //      state.set({seq: since.value, version: version, value: _value = value.value}, cb)
+        w.close(cb)
       }
     }
   }
 }}
+
+
 

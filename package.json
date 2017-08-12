@@ -8,6 +8,7 @@
     "url": "git://github.com/flumedb/flumeview-reduce.git"
   },
   "dependencies": {
+    "async-single": "^1.0.0",
     "atomic-file": "^0.3.0",
     "deep-equal": "^1.0.1",
     "flumecodec": "0.0.0",
