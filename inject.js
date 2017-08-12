@@ -50,8 +50,10 @@ return function (version, reduce, map, codec, initial) {
 
 
     var w = AsyncSingle(function (value, cb) {
-      if(state) state.set(value, cb)
-      else cb()
+      if(state) {
+        if(value) state.set(value, cb)
+        else state.destroy(cb)
+      } else cb()
     })
 
     function write () {
@@ -144,6 +146,10 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
+
+
+
+
 
 
 
