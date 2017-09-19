@@ -8,7 +8,7 @@
     "url": "git://github.com/flumedb/flumeview-reduce.git"
   },
   "dependencies": {
-    "async-single": "^1.0.0",
+    "async-single": "^1.0.1",
     "atomic-file": "^0.3.0",
     "deep-equal": "^1.0.1",
     "flumecodec": "0.0.0",
@@ -17,9 +17,9 @@
     "pull-stream": "^3.5.0"
   },
   "devDependencies": {
-    "flumedb": "^0.2.3",
+    "flumedb": "^0.4.1",
     "flumelog-memory": "^0.1.2",
-    "flumelog-offset": "^3.0.3",
+    "flumelog-offset": "^3.2.2",
     "tape": "^4.6.3"
   },
   "scripts": {
