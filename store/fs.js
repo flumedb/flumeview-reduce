@@ -30,6 +30,11 @@ module.exports = function (dir, name, codec) {
       value = codec.encode(value)
       self.size = value.length
       af.set(value, cb)
+    },
+    destroy: function (cb) {
+      value = null
+      self.size = 0
+      af.destroy(cb)
     }
   }
 }
