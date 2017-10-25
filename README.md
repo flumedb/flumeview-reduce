@@ -43,9 +43,9 @@ then increment `version` and the view will be rebuilt.
 and then if the returned value is not null, it is passed to reduce.
 
 ``` js
-var _data = map(data)
-if(_data != null)
-  state = reduce(state, map(data))
+var _value = map(value)
+if(_value != null)
+  state = reduce(state, _value, seq)
 ```
 
 using a `map` function is useful, because it enables efficiently streaming the realtime
@@ -100,5 +100,4 @@ var remoteView = _db.use('view', Reduce(version, reduce, map)) //etc
 ## License
 
 MIT
-
 
