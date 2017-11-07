@@ -32,6 +32,19 @@ function id (e) { return e }
 
 module.exports = function (Store) {
 return function (version, reduce, map, codec, initial) {
+  var opts
+  if(isObject(reduce)) {
+    opts = reduce
+    reduce = opts.reduce
+    map = opts.map
+    codec = opts.codec
+    initial = opts.initial
+  }
+  else opts = {}
+  opts.min = opts.min || 100
+  opts.max = opts.max || 500
+
+
   if(isFunction(version))
     throw new Error('version must be a number')
 
@@ -54,7 +67,7 @@ return function (version, reduce, map, codec, initial) {
         if(value) state.set(value, cb)
         else state.destroy(cb)
       } else cb()
-    })
+    }, opts)
 
     function write () {
       w.write({
@@ -146,10 +159,4 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
-
-
-
-
-
 
