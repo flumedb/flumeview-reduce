@@ -8,7 +8,7 @@ var none = {
 
 module.exports = function (dir, name, codec) {
   codec = codec || require('flumecodec/json')
-  var af = AtomicFile(path.join(dir, name+'.json'), none)
+  var af = AtomicFile(path.join(dir, name+'.json'), '~', none)
   var self
   return self = {
     size: null,
