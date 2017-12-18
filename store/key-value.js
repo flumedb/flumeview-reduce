@@ -1,7 +1,9 @@
-module.exports = function (version, opts) {
+// Creates a store that uses KeyValueStore provided in opts, if
+// available otherwise falls back to default behavior
+module.exports = function (opts) {
   if (opts && opts.KeyValueStore) {
-    return function (dir, name) {
-      var keyValueStore = opts.KeyValueStore(version, name)
+    return function (dir, name, codec, version) {
+      var keyValueStore = opts.KeyValueStore(name, version)
       return {
         get: function (cb) {
           keyValueStore.get(name, cb)
@@ -13,8 +15,5 @@ module.exports = function (version, opts) {
     }
   }
 
-  if(false && !process.env.FV_REDUCE_LS)
-    return require('./local-storage')
-  else
-    return require('./fs')
+  return require('./')
 }
