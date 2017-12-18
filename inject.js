@@ -31,7 +31,7 @@ function isFunction (f) {
 function id (e) { return e }
 
 module.exports = function (Store) {
-return function (version, reduce, map, codec, initial, flumeOpts) {
+return function (version, reduce, map, codec, initial) {
   var opts
   if(isObject(reduce)) {
     opts = reduce
@@ -39,7 +39,6 @@ return function (version, reduce, map, codec, initial, flumeOpts) {
     map = opts.map
     codec = opts.codec
     initial = opts.initial
-    flumeOpts = opts.flumeOptss
   }
   else opts = {}
   opts.min = opts.min || 100
@@ -86,7 +85,7 @@ return function (version, reduce, map, codec, initial, flumeOpts) {
 
     if(log.filename) {
       var dir = path.dirname(log.filename)
-      state = Store(dir, name, codec, version, flumeOpts)
+      state = Store(dir, name, codec, version)
       state.get(function (err, data) {
         if(err || isEmpty(data) || !data ||  data.version !== version) {
           since.set(-1) //overwrite old data.

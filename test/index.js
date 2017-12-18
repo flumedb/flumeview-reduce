@@ -1,10 +1,11 @@
 
 var Log = require('flumelog-memory')
-var Reduce = require('../')
+var Reduce = require('..')
 var tape = require('tape')
 var Flume = require('flumedb')
 
-module.exports = function (createFlume, opts) {
+module.exports = function (createFlume, createReduce) {
+  Reduce = createReduce || Reduce
   tape('simple', function (t) {
     var db = createFlume()
       .use('view', Reduce(1, function (acc, item) {
@@ -12,7 +13,7 @@ module.exports = function (createFlume, opts) {
       },
       function (data) {
         return data.value
-      }, null, 0, opts))
+      }, null, 0))
 
     db.view.get(function (err, v) {
       if(err) throw err
