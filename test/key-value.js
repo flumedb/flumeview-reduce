@@ -1,6 +1,4 @@
 var Flume = require('flumedb')
-var createKVFlumeReduce = require('../key-value')
-var KeyValue = require('../store/key-value')
 var FlumelogOffset = require('flumelog-offset')
 
 var file = '/tmp/test_flumeview-reduce/initial_'+Date.now()+'/log.offset'
@@ -25,4 +23,4 @@ var opts = {
 require('./')(
 function create () {
   return Flume(FlumelogOffset(file, 1024, require('flumecodec/json')))
-}, createKVFlumeReduce(opts))
+}, opts)

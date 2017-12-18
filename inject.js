@@ -5,6 +5,7 @@ var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
 var AsyncSingle = require('async-single')
+var SingleKeyValueStore = require('./store/key-value')
 
 /*
 Replication Ideas.
@@ -50,9 +51,13 @@ return function (version, reduce, map, codec, initial) {
 
   map = map || id
   var notify = Notify()
-  return function (log, name) { //name is where this view is mounted
+  return function (log, name, opts) { //name is where this view is mounted
     var acc, since = Obv()
     var value = Obv(), state
+
+    if (opts && opts.KeyValueStore) {
+      Store = SingleKeyValueStore(opts.KeyValueStore, version)
+    }
 
     //if we are in sync, and have not written recently, then write the current state.
 
@@ -85,7 +90,7 @@ return function (version, reduce, map, codec, initial) {
 
     if(log.filename) {
       var dir = path.dirname(log.filename)
-      state = Store(dir, name, codec, version)
+      state = Store(dir, name, codec)
       state.get(function (err, data) {
         if(err || isEmpty(data) || !data ||  data.version !== version) {
           since.set(-1) //overwrite old data.
