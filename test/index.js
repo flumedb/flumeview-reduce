@@ -4,7 +4,7 @@ var Reduce = require('../')
 var tape = require('tape')
 var Flume = require('flumedb')
 
-module.exports = function (createFlume) {
+module.exports = function (createFlume, opts) {
   tape('simple', function (t) {
     var db = createFlume()
       .use('view', Reduce(1, function (acc, item) {
@@ -12,7 +12,7 @@ module.exports = function (createFlume) {
       },
       function (data) {
         return data.value
-      }, null, 0))
+      }, null, 0, opts))
 
     db.view.get(function (err, v) {
       if(err) throw err

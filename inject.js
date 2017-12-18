@@ -9,7 +9,7 @@ var AsyncSingle = require('async-single')
 /*
 Replication Ideas.
 
-//value is skipped if seq is the same. or value option is false, or max > 
+//value is skipped if seq is the same. or value option is false, or max >
 getState({seq, value}, cb(null, {seq: _seq, value: value}))
 
 */
@@ -31,7 +31,7 @@ function isFunction (f) {
 function id (e) { return e }
 
 module.exports = function (Store) {
-return function (version, reduce, map, codec, initial) {
+return function (version, reduce, map, codec, initial, flumeOpts) {
   var opts
   if(isObject(reduce)) {
     opts = reduce
@@ -39,6 +39,7 @@ return function (version, reduce, map, codec, initial) {
     map = opts.map
     codec = opts.codec
     initial = opts.initial
+    flumeOpts = opts.flumeOptss
   }
   else opts = {}
   opts.min = opts.min || 100
@@ -85,9 +86,9 @@ return function (version, reduce, map, codec, initial) {
 
     if(log.filename) {
       var dir = path.dirname(log.filename)
-      state = Store(dir, name, codec)
+      state = Store(dir, name, codec, version, flumeOpts)
       state.get(function (err, data) {
-        if(err || isEmpty(data) || data.version !== version) {
+        if(err || isEmpty(data) || !data ||  data.version !== version) {
           since.set(-1) //overwrite old data.
           value.set(initial)
         }
@@ -159,4 +160,3 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
