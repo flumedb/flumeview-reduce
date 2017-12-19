@@ -54,8 +54,9 @@ return function (version, reduce, map, codec, initial) {
   return function (log, name, opts) { //name is where this view is mounted
     var acc, since = Obv()
     var value = Obv(), state
-
+    var kv
     if (opts && opts.KeyValueStore) {
+      kv = true
       Store = SingleKeyValueStore(opts.KeyValueStore, version)
     }
 
@@ -101,8 +102,19 @@ return function (version, reduce, map, codec, initial) {
           since.set(data.seq)
         }
       })
-    }
-    else {
+    } else if (kv) {
+      state = Store(null, name, codec)
+      state.get(function (err, data) {
+        if(err || isEmpty(data) || !data ||  data.version !== version) {
+          since.set(-1) //overwrite old data.
+          value.set(initial)
+        }
+        else {
+          value.set(data.value)
+          since.set(data.seq)
+        }
+      })
+    } else {
       write = function (){}
       since.set(-1)
       value.set(initial)
