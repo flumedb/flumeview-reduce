@@ -5,10 +5,16 @@ module.exports = function (KeyValueStore, version) {
     var keyValueStore = KeyValueStore(name, version)
     return {
       get: function (cb) {
-        keyValueStore.get(name, cb)
+        keyValueStore.get(name).then(
+          val => cb(null, val),
+          err => cb(err)
+        )
       },
       set: function (value, cb) {
-        keyValueStore.set(name, value, cb)
+        keyValueStore.set(name, value).then(
+          val => cb(null, val),
+          err => cb(err)
+        )
       }
     }
   }

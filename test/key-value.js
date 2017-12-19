@@ -6,12 +6,12 @@ var file = '/tmp/test_flumeview-reduce/initial_'+Date.now()+'/log.offset'
 var keyValueStore = function (name, version) {
   var db = {}
   return {
-    get (key, cb) {
-      cb(null, db[key])
+    get (key) {
+      return Promise.resolve(db[key])
     },
-    set (key, value, cb) {
+    set (key, value) {
       db[key] = value
-      cb(null, db[key])
+      return Promise.resolve(db[key])
     }
   }
 }
