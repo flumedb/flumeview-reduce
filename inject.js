@@ -88,7 +88,9 @@ return function (version, reduce, map, codec, initial) {
     //might be good to have a cheap way to update the seq. maybe put it in the filename,
     //so filenames monotonically increase, instead of write to `name~` and then `mv name~ name`
     var dir
-    if(log.filename) {
+    if (opts.dir) {
+      dir = opts.dir
+    } else if (log.filename) {
       dir = path.dirname(log.filename)
     }
 
