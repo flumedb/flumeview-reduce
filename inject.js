@@ -5,7 +5,6 @@ var path = require('path')
 var deepEqual = require('deep-equal')
 var Notify = require('pull-notify')
 var AsyncSingle = require('async-single')
-var SingleKeyValueStore = require('./store/key-value')
 
 /*
 Replication Ideas.
@@ -55,9 +54,9 @@ return function (version, reduce, map, codec, initial) {
     var acc, since = Obv()
     var value = Obv(), state
     var kv
-    if (opts && opts.KeyValueStore) {
+    if (opts && opts.SingleValueStore) {
       kv = true
-      Store = SingleKeyValueStore(opts.KeyValueStore, version)
+      Store = opts.SingleValueStore
     }
 
     //if we are in sync, and have not written recently, then write the current state.
@@ -88,22 +87,20 @@ return function (version, reduce, map, codec, initial) {
     //(or accept that we'll have to reprocess some items)
     //might be good to have a cheap way to update the seq. maybe put it in the filename,
     //so filenames monotonically increase, instead of write to `name~` and then `mv name~ name`
-
+    var dir
     if(log.filename) {
-      var dir = path.dirname(log.filename)
-      state = Store(dir, name, codec)
-      state.get(function (err, data) {
-        if(err || isEmpty(data) || !data ||  data.version !== version) {
-          since.set(-1) //overwrite old data.
-          value.set(initial)
-        }
-        else {
-          value.set(data.value)
-          since.set(data.seq)
-        }
-      })
-    } else if (kv) {
-      state = Store(null, name, codec)
+      dir = path.dirname(log.filename)
+    }
+
+    if (dir || kv) {
+      var storeOpts = {
+        dir,
+        codec,
+        name,
+        version
+      }
+
+      state = Store(storeOpts)
       state.get(function (err, data) {
         if(err || isEmpty(data) || !data ||  data.version !== version) {
           since.set(-1) //overwrite old data.

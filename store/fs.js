@@ -6,8 +6,10 @@ var none = {
   encode: id, decode: id
 }
 
-module.exports = function (dir, name, codec) {
-  codec = codec || require('flumecodec/json')
+module.exports = function (opts) {
+  var dir = opts.dir
+  var name = opts.name
+  var codec = opts.codec || require('flumecodec/json')
   var af = AtomicFile(path.join(dir, name+'.json'), '~', none)
   var self
   return self = {
@@ -38,11 +40,3 @@ module.exports = function (dir, name, codec) {
     }
   }
 }
-
-
-
-
-
-
-
-

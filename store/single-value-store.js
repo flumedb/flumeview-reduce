@@ -1,7 +1,9 @@
-// Creates a store that uses KeyValueStore provided in opts, if
-// available otherwise falls back to default behavior
-module.exports = function (KeyValueStore, version) {
-  return function (dir, name, codec) {
+// Creates a store that uses KeyValueStore to store a single value
+module.exports = function (KeyValueStore) {
+  return function (opts) {
+    var version = opts.version
+    var name = opts.name
+
     var keyValueStore = KeyValueStore(name, version)
     return {
       get: function (cb) {
