@@ -51,6 +51,7 @@ return function (version, reduce, map, codec, initial) {
   map = map || id
   var notify = Notify()
   return function (log, name, opts) { //name is where this view is mounted
+    opts = opts || {}
     var acc, since = Obv()
     var value = Obv(), state
     var kv
