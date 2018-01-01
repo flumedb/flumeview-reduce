@@ -50,15 +50,9 @@ return function (version, reduce, map, codec, initial) {
 
   map = map || id
   var notify = Notify()
-  return function (log, name, opts) { //name is where this view is mounted
-    opts = opts || {}
+  return function (log, name) { //name is where this view is mounted
     var acc, since = Obv()
     var value = Obv(), state
-    var kv
-    if (opts && opts.SingleValueStore) {
-      kv = true
-      Store = opts.SingleValueStore
-    }
 
     //if we are in sync, and have not written recently, then write the current state.
 
@@ -89,13 +83,13 @@ return function (version, reduce, map, codec, initial) {
     //might be good to have a cheap way to update the seq. maybe put it in the filename,
     //so filenames monotonically increase, instead of write to `name~` and then `mv name~ name`
     var dir
-    if (opts.dir) {
-      dir = opts.dir
-    } else if (log.filename) {
+    if (log.filename) {
       dir = path.dirname(log.filename)
+    } else if (log.dir) {
+      dir = log.dir
     }
 
-    if (dir || kv) {
+    if (dir) {
       var storeOpts = {
         dir,
         codec,
