@@ -3,4 +3,3 @@
 //  module.exports = require('./local-storage')
 //else
   module.exports = require('./fs')
-

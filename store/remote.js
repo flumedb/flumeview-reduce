@@ -9,8 +9,12 @@ module.exports = function (get, LocalStore, estimate) {
   //then we should stream. (if a view is quite large, this
   //may save lots of bandwidth for small updates)
   estimate = id
-  return function (dir, name, codec) {
-    var local = LocalStore(dir, name, codec)
+  return function (opts) {
+    var dir = opts.dir
+    var name = opts.name
+    var codec = opts.codec
+
+    var local = LocalStore(opts)
     return {
       get: function (cb) {
         local.get(function (_, data) {
@@ -40,4 +44,3 @@ module.exports = function (get, LocalStore, estimate) {
     }
   }
 }
-

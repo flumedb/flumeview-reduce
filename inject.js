@@ -9,7 +9,7 @@ var AsyncSingle = require('async-single')
 /*
 Replication Ideas.
 
-//value is skipped if seq is the same. or value option is false, or max > 
+//value is skipped if seq is the same. or value option is false, or max >
 getState({seq, value}, cb(null, {seq: _seq, value: value}))
 
 */
@@ -82,12 +82,24 @@ return function (version, reduce, map, codec, initial) {
     //(or accept that we'll have to reprocess some items)
     //might be good to have a cheap way to update the seq. maybe put it in the filename,
     //so filenames monotonically increase, instead of write to `name~` and then `mv name~ name`
+    var dir
+    if (log.filename) {
+      dir = path.dirname(log.filename)
+    } else if (log.dir) {
+      dir = log.dir
+    }
 
-    if(log.filename) {
-      var dir = path.dirname(log.filename)
-      state = Store(dir, name, codec)
+    if (dir) {
+      var storeOpts = {
+        dir,
+        codec,
+        name,
+        version
+      }
+
+      state = Store(storeOpts)
       state.get(function (err, data) {
-        if(err || isEmpty(data) || data.version !== version) {
+        if(err || isEmpty(data) || !data ||  data.version !== version) {
           since.set(-1) //overwrite old data.
           value.set(initial)
         }
@@ -96,8 +108,7 @@ return function (version, reduce, map, codec, initial) {
           since.set(data.seq)
         }
       })
-    }
-    else {
+    } else {
       write = function (){}
       since.set(-1)
       value.set(initial)
@@ -159,4 +170,3 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
-
