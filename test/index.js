@@ -1,42 +1,71 @@
-
 var Log = require('flumelog-memory')
 var Reduce = require('../')
 var tape = require('tape')
 var Flume = require('flumedb')
+var pull = require('pull-stream')
 
 module.exports = function (createFlume) {
   tape('simple', function (t) {
     var db = createFlume()
-      .use('view', Reduce(1, function (acc, item) {
-        return (acc || 0) + item
-      },
-      function (data) {
-        return data.value
-      }, null, 0))
+      .use('view', Reduce(
+        1,
+        function reduce (acc, item) {
+          return {
+            sum: acc.sum+item,
+            squareSum: acc.squareSum+item*item
+          }
+        },
+        function map (data) {
+          return data.value
+        },
+        null, { sum: 0, squareSum: 0 } // codec, initial state
+      ))
+
+    var values = [{value: 10}, {value: 20}]
+
+    var asyncDone = false
+    var streamDone = false
+
+    pull(
+      db.view.stream({ live: true }),
+      pull.take(3),
+      pull.collect((err, values) => {
+        t.deepEqual(values, [
+          { sum: 0, squareSum: 0 },
+          { sum: 10, squareSum: 100 },
+          { sum: 30, squareSum: 500 },
+        ], 'streams reduction of view')
+
+        streamDone = true
+        if (asyncDone && streamDone) t.end()
+      })
+    )
 
     db.view.get(function (err, v) {
       if(err) throw err
-      t.equal(v, 0)
-      db.append([{value: 10}, {value: 20}], function (err) {
+      t.deepEqual(v, { sum: 0, squareSum: 0 }, 'initial state')
+
+      db.append(values, function (err) {
         db.view.get(function (err, value) {
           if(err) throw err
-          t.equal(value, 30)
+          t.deepEqual(value, { sum: 30, squareSum: 500 }, 'reduces view')
+
           db.view.get({meta: true, values: true}, function (err, value) {
             if(err) throw err
-            console.log(value)
-            t.deepEqual(value, {seq: value.seq, value: 30, version: 1})
+            t.deepEqual(value, {seq: value.seq, value: { sum: 30, squareSum: 500 }, version: 1}, 'meta: true, values: true')
+
             db.view.get({values: false}, function (err, value) {
               if(err) throw err
-              console.log(value)
-              t.deepEqual(value, {seq: value.seq, version: 1, size: null})
-              t.end()
+              t.deepEqual(value, {seq: value.seq, version: 1, size: null}, 'values: false')
+
+              asyncDone = true
+              if (asyncDone && streamDone) t.end()
             })
           })
         })
       })
     })
   })
-
 }
 
 if(!module.parent)
