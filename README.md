@@ -21,9 +21,10 @@ var log = FlumeLog(file, 1024*16, codec.json) //use any flume log
 
 //attach the reduce function.
 var db = Flume(log).use('stats',
-    Reduce(1, statistics, function (data) {
-      return data.value
-    })
+  Reduce(1, statistics, function map (data) {
+    return data.value
+  }
+)
 
 db.append({value: 1}, function (err) {
 
@@ -63,6 +64,16 @@ get the current state of the reduce. This will wait until the view is up to date
 Stream the changing reduce state. for this to work, a map function must be provided.
 
 If so, the same reduce function can be used to process the output.
+
+## db[name].value => Observeable
+
+An [observeable](https://github.com/dominictarr/obv) of the reduced state. Subscribe a listener to changes like so:
+
+```js
+db[name].value(newView => {
+  console.log('new view just arrived!', newView)
+})
+```
 
 ## Stores
 
