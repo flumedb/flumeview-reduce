@@ -33,7 +33,7 @@ db.append({value: 1}, function (err) {
 })
 ```
 
-## FlumeViewReduce(version, reduce, map?) => FlumeView
+## FlumeViewReduce(version, reduce, map?, codec?, initialState?) => FlumeView
 
 construct a flumeview from this reduce function. `version` should be a number,
 and must be provided. If you make a breaking change to either `reduce` or `map`
@@ -54,15 +54,16 @@ changes in the state to a remote client.
 then, pass the flumeview to `db.use(name, flumeview)`
 and you'll have access to the flumeview methods on `db[name]...`
 
+`codec` (optional) - specify the codec to use in the event your log uses the filesystem.
+`initialState` (optional) - declare an initial state for your reducer. This will be ignored if a persisted state is found.
+
 ## db[name].get(cb)
 
 get the current state of the reduce. This will wait until the view is up to date, if necessary.
 
 ## db[name].stream({live: boolean}) => PullSource
 
-Stream the changing reduce state. for this to work, a map function must be provided.
-
-If so, the same reduce function can be used to process the output.
+Stream the new reduce state as it changes.
 
 ## Stores
 
