@@ -20,10 +20,12 @@ var statistics = require('statistics')
 var log = FlumeLog(file, 1024*16, codec.json) //use any flume log
 
 //attach the reduce function.
-var db = Flume(log).use('stats',
-    Reduce(1, statistics, function (data) {
-      return data.value
-    })
+var db = Flume(log)
+  .use('stats', Reduce(
+    1,                                    // version
+    statistics,                           // reducer
+    function (data) { return data.value } // map
+  ))
 
 db.append({value: 1}, function (err) {
 
@@ -33,7 +35,7 @@ db.append({value: 1}, function (err) {
 })
 ```
 
-## FlumeViewReduce(version, reduce, map?) => FlumeView
+## FlumeViewReduce(version, reduce, map?, codec?, initialState?) => FlumeView
 
 construct a flumeview from this reduce function. `version` should be a number,
 and must be provided. If you make a breaking change to either `reduce` or `map`
@@ -54,15 +56,40 @@ changes in the state to a remote client.
 then, pass the flumeview to `db.use(name, flumeview)`
 and you'll have access to the flumeview methods on `db[name]...`
 
+`codec` (optional) - specify the codec to use in the event your log uses the filesystem.
+`initialState` (optional) - declare an initial state for your reducer. This will be ignored if a persisted state is found.
+
 ## db[name].get(cb)
 
 get the current state of the reduce. This will wait until the view is up to date, if necessary.
 
 ## db[name].stream({live: boolean}) => PullSource
 
-Stream the changing reduce state. for this to work, a map function must be provided.
+Creates a [pull-stream](https://github.com/pull-stream/pull-stream) whose:
+- first value is the current state of the view,
+- following values are not the view state, but the new _values_ (they're had your `map` applied, but the `reducer` hasn't been applied yet).
 
-If so, the same reduce function can be used to process the output.
+This is a light-weight for a remote client to keep up to date with the view - get a snapshot, and then update it themselves. This way we don't need to send a massive view every time there's a new log entry.
+
+```js
+var db = Flume(log)
+  .use('stats', Reduce(2, myReducer, myMap))
+
+var viewState // this is our view we're calculating remotely
+pull(
+  db.stats.stream({live:true}),
+  pull.drain(function(value) {
+    if (!view) viewState = value      // store the current snapshot (the first value)
+    else myReducer(viewState, value)  // update the snapshot use reducer + mapped values
+
+    console.log(value)                // do something with 
+  }
+)
+
+db.append(
+  // ... some code that adds new code to the log, triggering stream.
+)
+```
 
 ## Stores
 
