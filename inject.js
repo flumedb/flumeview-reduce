@@ -139,12 +139,9 @@ return function (version, reduce, map, codec, initial) {
       createSink: function (cb) {
         return Drain(function (data) {
           var _data = map(data.value, data.seq)
-          if(_data != null) {
-            var __data = reduce(value.value, _data, data.seq)
-            value.set(__data)
-            notify(__data)
-          }
+          if(_data != null) value.set(reduce(value.value, _data, data.seq))
           since.set(data.seq)
+          notify(_data)
           //if we are now in sync with the log, maybe write.
           if(since.value === log.since.value)
             write()

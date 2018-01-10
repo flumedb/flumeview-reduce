@@ -32,8 +32,8 @@ module.exports = function (createFlume) {
       pull.collect((err, values) => {
         t.deepEqual(values, [
           { sum: 0, squareSum: 0 },
-          { sum: 10, squareSum: 100 },
-          { sum: 30, squareSum: 500 },
+          10,
+          20
         ], 'streams reduction of view')
 
         streamDone = true
