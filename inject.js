@@ -153,6 +153,7 @@ return function (version, reduce, map, codec, initial) {
         w.close(cb)
       },
       close: function (cb) {
+        notify.abort(true)
         if(!since.value || !state) return cb()
         w.close(cb)
       }
