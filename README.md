@@ -1,7 +1,7 @@
 # flumeview-reduce
 
 A flumeview into a reduce function.
-Stream append-only log data into a reduce function to calculate a state.
+Stream append-only log data in the order the log is written into a reduce function to calculate a state.
 
 ## Example
 
