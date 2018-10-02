@@ -1,4 +1,4 @@
-var Log = require('flumelog-memory')
+var OffsetLog = require('flumelog-offset')
 var Reduce = require('../')
 var tape = require('tape')
 var Flume = require('flumedb')
@@ -37,18 +37,20 @@ module.exports = function (createFlume) {
       db.append({value: 10*(i++)}, function (err) {
         if(i < 4) return
         clearInterval(int)
-        db.close(function () {
-          var _db = create()
+        db.close(function (err) {
+          if(err) throw err
+          _db = create()
           pull(
-            db.view.stream({live: true}),
+            _db.view.stream({live: true}),
             pull.drain(log(2), function () {
             })
           )
-          db.append({value: 'x'}, function () {
-            db.close(function () {
+          _db.append({value: 'x'}, function () {
+            _db.close(function (err) {
+              if(err) throw err
               t.deepEqual(output, {
                 1: [0, {value: 0}, {value: 10}, {value: 20}, {value: 30}],
-                2: [4, {value:'x'}]
+                2: [4 ,{value:'x'}]
               })
               t.end()
             })
@@ -61,7 +63,7 @@ module.exports = function (createFlume) {
 
 if(!module.parent)
   module.exports(function () {
-    return Flume(Log())
-  //OffsetLog('/tmp/test-ssb-flumeview_offsetlog', {blockSize:1024, codec: require('flumecodec/json')}))
+  //  return Flume(Log())
+    return Flume(OffsetLog('/tmp/test-ssb-flumeview_offsetlog', {blockSize:1024, codec: require('flumecodec/json')}))
   })
 
