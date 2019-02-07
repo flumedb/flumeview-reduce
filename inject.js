@@ -41,6 +41,9 @@ return function (version, reduce, map, codec, initial) {
     initial = opts.initial
   }
   else opts = {}
+  //timers for updating the state file.
+  //always wait min ms after a write,
+  //up to max since first write?
   opts.min = opts.min || 100
   opts.max = opts.max || 500
 
