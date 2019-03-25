@@ -15,12 +15,13 @@ function log (name) {
 }
 
 module.exports = function (createFlume) {
+  //NOTE this test is broken!
   tape('simple', function (t) {
     function create() {
       return createFlume()
       .use('view',
         Reduce("1", function (acc, item) {
-          console.log("REDUCE", acc, item)
+          console.log("REDUCE", acc, item, (acc || 0) + 1)
           return (acc || 0) + 1
         }, null, null, 0)
       )
@@ -38,6 +39,7 @@ module.exports = function (createFlume) {
       pull.drain(log(1), function () {
       })
     )
+
     var i = 0
     var int = setInterval(function () {
       db.append({value: 10*(i++)}, function (err) {
@@ -51,14 +53,21 @@ module.exports = function (createFlume) {
             pull.drain(log(2), function () {
             })
           )
-          _db.append({value: 'x'}, function () {
-            _db.close(function (err) {
-              if(err) throw err
-              t.deepEqual(output, {
-                1: [0, {value: 0}, {value: 10}, {value: 20}, {value: 30}],
-                2: [4 ,{value:'x'}]
+          //wait until we are loaded
+          console.log("GET")
+          _db.get(function (err, v) {
+  //          if(err) throw err
+//            console.log('value', v)
+            console.log("APPEND")
+            _db.append({value: 'x'}, function () {
+              _db.close(function (err) {
+                if(err) throw err
+                t.deepEqual(output, {
+                  1: [0, {value: 0}, {value: 10}, {value: 20}, {value: 30}],
+                  2: [4 ,{value:'x'}]
+                })
+                t.end()
               })
-              t.end()
             })
           })
         })
@@ -67,12 +76,14 @@ module.exports = function (createFlume) {
   })
 }
 
-if(!module.parent)
+if(!module.parent) {
+  var file ='/tmp/test-ssb-flumeview_offsetlog2'
   module.exports(function () {
-    rmrf.sync('/tmp/test-ssb-flumeview_offsetlog')
-  //  return Flume(Log())
-    return Flume(OffsetLog('/tmp/test-ssb-flumeview_offsetlog', {blockSize:1024, codec: require('flumecodec/json')}))
+    rmrf.sync(file)
+    return Flume(OffsetLog(file, {blockSize:1024, codec: require('flumecodec/json')}))
   })
+}
+
 
 
 
