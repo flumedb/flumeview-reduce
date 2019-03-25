@@ -19,7 +19,7 @@
   "devDependencies": {
     "flumedb": "^1.0.0",
     "flumelog-memory": "^0.1.2",
-    "flumelog-offset": "^3.2.2",
+    "flumelog-offset": "^3.3.2",
     "rimraf": "^2.6.2",
     "tape": "^4.6.3"
   },
