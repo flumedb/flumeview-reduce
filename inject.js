@@ -90,7 +90,7 @@ return function (version, reduce, map, codec, initial) {
       var dir = path.dirname(log.filename)
       state = Store(dir, name, codec)
       state.get(function (err, data) {
-        if(err || isEmpty(data) || data.version !== version) {
+        if(err || data == null || isEmpty(data) || data.version !== version) {
           since.set(-1) //overwrite old data.
           value.set(initial)
         }
@@ -163,4 +163,5 @@ return function (version, reduce, map, codec, initial) {
     }
   }
 }}
+
 
