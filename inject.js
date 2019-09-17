@@ -140,14 +140,24 @@ return function (version, reduce, map, codec, initial) {
         return source
       },
       createSink: function (cb) {
+        let count = 0
         return Drain(function (data) {
           var _data = map(data.value, data.seq)
           if(_data != null) value.set(reduce(value.value, _data, data.seq))
           since.set(data.seq)
           notify(_data)
-          //if we are now in sync with the log, maybe write.
-          if(since.value === log.since.value)
+
+          // If we are now in sync with the log, write.
+          const inSyncWithLog = since.value === log.since.value
+
+          // Alternatively, write every 10,000 messages.
+          const isTenThousand = count % 10000
+
+          if(inSyncWithLog || isTenThousand) {
             write()
+          }
+
+          count += 1
         }, cb)
       },
       destroy: function (cb) {
