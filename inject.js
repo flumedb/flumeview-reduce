@@ -151,7 +151,7 @@ return function (version, reduce, map, codec, initial) {
         }, cb)
       },
       destroy: function (cb) {
-        value.set(null); since.set(-1);
+        value.set(null);
         w.write(null)
         w.close(cb)
       },
