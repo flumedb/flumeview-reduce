@@ -106,6 +106,8 @@ return function (version, reduce, map, codec, initial) {
       value.set(initial)
     }
 
+    let closeStream = () => {}
+
     return {
       since: since,
       value: value,
@@ -140,6 +142,7 @@ return function (version, reduce, map, codec, initial) {
         return source
       },
       createSink: function (cb) {
+        closeStream = cb;
         return Drain(function (data) {
           var _data = map(data.value, data.seq)
           if(_data != null) value.set(reduce(value.value, _data, data.seq))
@@ -151,8 +154,10 @@ return function (version, reduce, map, codec, initial) {
         }, cb)
       },
       destroy: function (cb) {
-        value.set(null); since.set(-1);
-        w.write(null)
+        value.set(initial)
+        since.set(-1)
+        w.write(initial)
+        closeStream()
         w.close(cb)
       },
       close: function (cb) {
