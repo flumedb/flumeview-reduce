@@ -6,16 +6,20 @@ var pull = require('pull-stream')
 
 module.exports = function (createFlume) {
   tape('simple', function (t) {
+    t.plan(14)
+
     var db = createFlume()
       .use('view', Reduce(
         1,
         function reduce (acc, item) {
+          t.pass('reducing')
           return {
             sum: acc.sum+item,
             squareSum: acc.squareSum+item*item
           }
         },
         function map (data) {
+          t.pass('saw message')
           return data.value
         },
         null, { sum: 0, squareSum: 0 } // codec, initial state
@@ -59,7 +63,11 @@ module.exports = function (createFlume) {
               t.deepEqual(value, {seq: value.seq, version: 1, size: null}, 'values: false')
 
               asyncDone = true
-              if (asyncDone && streamDone) t.end()
+              if (asyncDone && streamDone)
+              db.rebuild((err) => {
+                t.error(err)
+                t.end()
+              })
             })
           })
         })
