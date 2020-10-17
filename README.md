@@ -103,6 +103,7 @@ this is how the actual data is persisted. the current implementations are
 to set a store, you must set up flumeview-reduce via the lower level dependency injection api.
 
 ``` js
+var Store = require('flumeview-reduce/store/fs')
 var createReduce = require('flumeview-reduce/inject')
 
 var Reduce = createReduce(Store)
