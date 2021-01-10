@@ -31,7 +31,7 @@ function isFunction (f) {
 function id (e) { return e }
 
 module.exports = function (Store) {
-return function (version, reduce, map, codec, initial) {
+return function (version, reduce, map, codec, initial, writeInterval = null) {
   var opts
   if(isObject(reduce)) {
     opts = reduce
@@ -154,9 +154,9 @@ return function (version, reduce, map, codec, initial) {
           const inSyncWithLog = since.value === log.since.value
 
           // Alternatively, write every 10,000 messages.
-          const isTenThousand = count % 10000
+          const periodicWrite = writeInterval && count % writeInterval == 0
 
-          if(inSyncWithLog || isTenThousand) {
+          if(inSyncWithLog || periodicWrite) {
             write()
           }
 
