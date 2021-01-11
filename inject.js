@@ -31,7 +31,7 @@ function isFunction (f) {
 function id (e) { return e }
 
 module.exports = function (Store) {
-return function (version, reduce, map, codec, initial) {
+return function (version, reduce, map, codec, initial, writeInterval = null) {
   var opts
   if(isObject(reduce)) {
     opts = reduce
@@ -143,14 +143,24 @@ return function (version, reduce, map, codec, initial) {
       },
       createSink: function (cb) {
         closeStream = cb;
+        let count = 0
         return Drain(function (data) {
           var _data = map(data.value, data.seq)
           if(_data != null) value.set(reduce(value.value, _data, data.seq))
           since.set(data.seq)
           notify(_data)
-          //if we are now in sync with the log, maybe write.
-          if(since.value === log.since.value)
+
+          // If we are now in sync with the log, write.
+          const inSyncWithLog = since.value === log.since.value
+
+          // Alternatively, write every 10,000 messages.
+          const periodicWrite = writeInterval && count % writeInterval == 0
+
+          if(inSyncWithLog || periodicWrite) {
             write()
+          }
+
+          count += 1
         }, cb)
       },
       destroy: function (cb) {
